@@ -1,26 +1,106 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using System.Xml.Serialization;
 
 namespace Cw2
 {
-    class Program
+    public class Program
     {
+        public const string author = "Łukasz Grzybowski";
+
         public static void Main(string[] args)
         {
-            var path = @"C:\Users\Łukasz\Desktop\dane.csv";
-            var lines = File.ReadLines(path);
-            string[] each;
-            Student student;
+            var pathCSV = args.Length > 0 ? args[0] : "dane.csv";
+            var destination = args.Length > 1 ? args[1] : "result.xml";
+            var dataFormat = args.Length > 2 ? args[2] : "xml";
+            var logPath = "log.txt";
+
+            var log = new StringBuilder();
+            var serializer = new XmlSerializer(typeof(University));
+            var today = DateTime.Today;
+
+            FileStream writer;
+            IEnumerable<string> lines;
+            try
+            {
+                lines = File.ReadLines(pathCSV);
+                writer = new FileStream(destination, FileMode.Create);
+            }
+            catch (FileNotFoundException)
+            {
+                throw new FileNotFoundException("Plik nie istnieje");
+            }
+            catch (ArgumentException)
+            {
+                throw new ArgumentException("Podana sciezka jest niepoprawna");
+            }
+            var hash = new HashSet<Student>(new OwnComparer());
+
+            var academy = new University();
+            var studentList = new List<Student>();
+            var activeStudiesList = new Dictionary<string, int>();
+
             foreach (var line in lines)
             {
-                each = line.Split(",");
-                student = new Student(each);
+                string[] student = line.Split(',');
+                if (isLineCorrect(student))
+                {
+                    var stud = new Student(student);
+                    
+                    if (hash.Add(stud))
+                    {
+                        studentList.Add(stud);
+                        if (!activeStudiesList.ContainsKey(stud.studies.name))
+                        {
+                            activeStudiesList.Add(stud.studies.name, 1);
+                        }
+                        else
+                        {
+                            activeStudiesList[stud.studies.name] += 1;
+                        }
+                    }
+                    else
+                    {
+                        log.Append(line + "\n");
+                    }
+                }
+                else
+                {
+                    log.Append(line + "\n");
+                }
+
             }
+            University.date = today.ToShortDateString();
+            University.author = Program.author;
+            University.Students = studentList;
+            University.Studies = new List<ActiveStudies>();
+            foreach (KeyValuePair<string, int> pair in activeStudiesList)
+            {
+                University.Studies.Add(new ActiveStudies
+                {
+                    name = pair.Key,
+                    numberOfStudents = pair.Value.ToString()
+                });
+            }
+            serializer.Serialize(writer, University);
 
+            Console.WriteLine(today.ToShortDateString());
+            Console.WriteLine(hash.Count);
+            File.WriteAllText(logPath, log.ToString());
+        }
 
-
-
+        private static bool isLineCorrect(string[] line)
+        {
+            if (line.Length != 9)
+                return false;
+            for (int i = 0; i < line.Length; i++)
+            {
+                if (String.IsNullOrWhiteSpace(line[i]))
+                    return false;
+            }
+            return true;
         }
     }
 }
