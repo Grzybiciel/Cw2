@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 
 namespace Cw2
 {
-    class University
+    public class University
     {
 
         [XmlAttribute("createdAt")]
