@@ -38,7 +38,7 @@ namespace Cw2
             }
             var hash = new HashSet<Student>(new OwnComparer());
 
-            var academy = new University();
+            var university = new University();
             var studentList = new List<Student>();
             var activeStudiesList = new Dictionary<string, int>();
 
@@ -72,19 +72,19 @@ namespace Cw2
                 }
 
             }
-            University.date = today.ToShortDateString();
-            University.author = Program.author;
-            University.Students = studentList;
-            University.Studies = new List<ActiveStudies>();
+            university.date = today.ToShortDateString();
+            university.author = Program.author;
+            university.Students = studentList;
+            university.Studies = new List<ActiveStudies>();
             foreach (KeyValuePair<string, int> pair in activeStudiesList)
             {
-                University.Studies.Add(new ActiveStudies
+                university.Studies.Add(new ActiveStudies
                 {
                     name = pair.Key,
                     numberOfStudents = pair.Value.ToString()
                 });
             }
-            serializer.Serialize(writer, University);
+            serializer.Serialize(writer, university);
 
             Console.WriteLine(today.ToShortDateString());
             Console.WriteLine(hash.Count);
