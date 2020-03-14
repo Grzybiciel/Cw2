@@ -13,7 +13,7 @@ namespace Cw2
         public static void Main(string[] args)
         {
             var pathCSV = args.Length > 0 ? args[0] : @"C:\Users\Łukasz\Desktop\dane.csv";
-            var destination = args.Length > 1 ? args[1] : "result.xml";
+            var destination = args.Length > 1 ? args[1] : @"C:\Users\Łukasz\Desktop\result.xml";
             var dataFormat = args.Length > 2 ? args[2] : "xml";
             var logPath = "log.txt";
 
