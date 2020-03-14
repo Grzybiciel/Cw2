@@ -8,6 +8,9 @@ namespace Cw2
     [XmlType("student")]
     public class Student
     {
+        public Student()
+        {
+        }
         public Student(string[] singleLine)
         {
             this.FirstName = singleLine[0];

@@ -9,6 +9,9 @@ namespace Cw2
 {
     public class University
     {
+        public University()
+        {
+        }
 
         [XmlAttribute("createdAt")]
         [JsonProperty("createdAt")]
