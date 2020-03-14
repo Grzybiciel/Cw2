@@ -3,166 +3,136 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
+using System.Xml;
+using Newtonsoft.Json;
+
 
 namespace Cw2
 {
-    public class Program
+    class Program
     {
-        public const string author = "Łukasz Grzybowski";
-
-        public static void Main(string[] args)
+        static void Main(string[] args)
         {
-            var pathCSV = args.Length > 0 ? args[0] : @"C:\Users\Łukasz\Desktop\dane.csv";
-            var destination = args.Length > 1 ? args[1] : @"C:\Users\Łukasz\Desktop\result.xml";
-            var dataFormat = args.Length > 2 ? args[2] : "xml";
-            var logPath = "log.txt";
+            var path = @"C:\Users\Łukasz\Desktop\dane.csv";
+            var resultPath = @"C:\Users\Łukasz\Desktop\result.xml";
+            var resultFormat = "xml";
 
             var log = new StringBuilder();
-            var serializer = new XmlSerializer(typeof(University));
-            var today = DateTime.Today;
 
-            FileStream writer;
-            IEnumerable<string> lines;
             try
             {
-                lines = File.ReadLines(pathCSV);
-                writer = new FileStream(destination, FileMode.Create);
-            }
-            catch (FileNotFoundException)
-            {
-                throw new FileNotFoundException("Plik nie istnieje");
-            }
-            catch (ArgumentException)
-            {
-                throw new ArgumentException("Podana sciezka jest niepoprawna");
-            }
-            var hash = new HashSet<Student>(new OwnComparer());
-
-            var university = new University();
-            var studentList = new List<Student>();
-            var activeStudiesList = new Dictionary<string, int>();
-
-            foreach (var line in lines)
-            {
-                string[] student = line.Split(',');
-                if (isLineCorrect(student))
+                if (args.Length != 3)
+                    throw new ArgumentException("Wrong number of arguments");
+                if (args.Length == 3)
                 {
-                    var stud = new Student(student);
-                    
-                    if (hash.Add(stud))
+                    if (!(args[2] == "xml" || args[2] == ".xml" || args[2] == "json" || args[2] == ".json"))
                     {
-                        studentList.Add(stud);
-                        if (!activeStudiesList.ContainsKey(stud.studies.name))
-                        {
-                            activeStudiesList.Add(stud.studies.name, 1);
-                        }
-                        else
-                        {
-                            activeStudiesList[stud.studies.name] += 1;
-                        }
+                        throw new ArgumentException("Unable to save in this format");
                     }
-                    else
+                    resultFormat = args[2];
+                    if (!Directory.Exists((resultPath)))
                     {
-                        log.Append(line + "\n");
+                        throw new ArgumentException("Incorrect path");
                     }
+                    resultPath = "@" + args[1];
+                    if (!File.Exists(path))
+                    { 
+                        throw new FileNotFoundException("File " + path + " does not exist.");
+                    }
+                    path = "@" + args[0];
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Append(ex.Message);
+                path = @"C:\Users\Łukasz\Desktop\dane.csv";
+                resultPath = @"C:\Users\Łukasz\Desktop\result.xml";
+                resultFormat = "xml";
+            }
+
+
+            var university = new University {
+                date = DateTime.Today.ToString("dd.MM.yyyy"),
+                author = "Łukasz Grzybowski",
+                students = new HashSet<Student>(new OwnComparer()),
+                studies = new List<ActiveStudies>()
+            };
+            var allLines = File.ReadLines(path);
+            HashSet<Student> studentsHashSet = university.students;
+
+            foreach (var line in allLines)
+            {
+                var eachStudent = line.Split(",");
+                if (eachStudent.Length != 9)
+                {
+                    log.Append("Wrong number of columns in this line: " + line);
+                    continue;
+                }
+
+                var stud = new Student(eachStudent);
+
+                if (!studentsHashSet.Add(stud))
+                {
+                    log.Append("This student already exists: " + stud.FirstName + " " + stud.LastName + " " + stud.Index + " ");
                 }
                 else
                 {
-                    log.Append(line + "\n");
+                    var flag2 = true;
+                    foreach (var stud2 in university.studies)
+                    {
+                        if (stud2.name == stud.studies.name)
+                        {
+                            stud2.numberOfStudents++;
+                            flag2 = false;
+                            break;
+                        }
+                    }
+
+                    if (flag2 == true)
+                    {
+                        university.studies.Add(new ActiveStudies
+                        {
+                            name = stud.studies.name,
+                            numberOfStudents = 1
+                        });
+                    }
                 }
 
-            }
-            university.date = today.ToShortDateString();
-            university.author = Program.author;
-            university.Students = studentList;
-            university.Studies = new List<ActiveStudies>();
-            foreach (KeyValuePair<string, int> pair in activeStudiesList)
-            {
-                university.Studies.Add(new ActiveStudies
+                var flag = true;
+                foreach (var line2 in eachStudent)
                 {
-                    name = pair.Key,
-                    numberOfStudents = pair.Value.ToString()
-                });
-            }
-            serializer.Serialize(writer, university);
+                    if (line2.Length != 0)
+                    {
+                        continue;
+                    }
+                    log.Append("One or more columns are empty in this line: " + line);
+                    flag = false;
+                    break;
+                }
 
-            Console.WriteLine(today.ToShortDateString());
-            Console.WriteLine(hash.Count);
-            File.WriteAllText(logPath, log.ToString());
-        }
+                if (!flag)
+                {
+                    continue;
+                }
 
-        private static bool isLineCorrect(string[] line)
-        {
-            if (line.Length != 9)
-                return false;
-            for (int i = 0; i < line.Length; i++)
-            {
-                if (String.IsNullOrWhiteSpace(line[i]))
-                    return false;
-            }
-            return true;
-        }
-    }
-}
-
-            
-            /*var path = @"C:\Users\Łukasz\Desktop\dane.csv";
-
-            var lines = File.ReadLines(path);
-            
-            foreach (var line in lines)
-            {
-                Console.WriteLine(line);
+                
             }
 
-
-
-
-            var parsedDate = DateTime.Parse("2020-03-09");
-            Console.WriteLine(parsedDate);
-
-            var now = DateTime.UtcNow;
-            Console.WriteLine(now);
-
-            var today = DateTime.Today;
-            Console.WriteLine(today.ToShortDateString());
-
-            var hash = new HashSet<Student>(new OwnComparer());
-
-            var stud1 = new Student
+            File.WriteAllText(@"C:\Users\Łukasz\Desktop\log.txt", log.ToString());
+            if (resultFormat == "xml")
             {
-                FirstName = "Jan",
-                LastName = "Kowalski",
-                Index = "1234"
-            };
-
-            var stud2 = new Student
-            {
-                FirstName = "Jan",
-                LastName = "Kowalski",
-                Index = "1234"
-            };
-
-            var stud3 = new Student
-            {
-                FirstName = "Janina",
-                LastName = "Nowak",
-                Index = "1234"
-            };
-
-            var newStud = new Student();
-
-            if(!hash.Add(newStud))
-            {
-             //   errors.Add(newStud);
+                var serializer = new XmlSerializer(typeof(University));
+                var writer = new FileStream(resultPath, FileMode.Create);
+                serializer.Serialize(writer, university, new XmlSerializerNamespaces(new[] { XmlQualifiedName.Empty}));
             }
-            Console.WriteLine(hash.Count);
-
-
-
-
-
+            else if (resultFormat == "json")
+            {
+                var pathToJSON = resultPath;
+                University universityToJSON = university;
+                string json = JsonConvert.SerializeObject(universityToJSON);
+                File.WriteAllText(pathToJSON, json);
+            }
         }
     }
+
 }
-*/

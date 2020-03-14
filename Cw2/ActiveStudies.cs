@@ -17,7 +17,7 @@ namespace Cw2
 
         [XmlAttribute("numberOfStudents")]
         [JsonProperty("numberOfStudents")]
-        public string numberOfStudents { get; set; }
+        public int numberOfStudents = 0;
     }
 }
    

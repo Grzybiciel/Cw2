@@ -29,8 +29,8 @@ namespace Cw2
         }
 
 
-        [XmlAttribute(attributeName: "indexnumber")]
-        [JsonProperty("indexnumber")]
+        [XmlAttribute(attributeName: "indexNumber")]
+        [JsonProperty("indexNumber")]
         public string Index { get; set; }
 
         [XmlElement("fname")]
@@ -70,13 +70,13 @@ namespace Cw2
     }
     public class Studies
     {
-        [XmlElement("studiesName")]
-        [JsonProperty("studiesName")]
+        [XmlElement("name")]
+        [JsonProperty("name")]
         public string name { get; set; }
 
 
-        [XmlElement("studiesMode")]
-        [JsonProperty("studiesMode")]
+        [XmlElement("mode")]
+        [JsonProperty("mode")]
         public string mode { get; set; }
     }
 }

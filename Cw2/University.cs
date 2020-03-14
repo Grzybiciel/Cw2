@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 
 namespace Cw2
 {
+    [XmlRootAttribute("uczelnia")]
     public class University
     {
         public University()
@@ -23,11 +24,11 @@ namespace Cw2
 
         [XmlArray("studenci")]
         [JsonProperty("studenci")]
-        public List<Student> Students { get; set; }
+        public HashSet<Student> students { get; set; }
 
         [XmlArray("activeStudies")]
         [JsonProperty("activeStudies")]
-        public List<ActiveStudies> Studies { get; set; }
+        public List<ActiveStudies> studies { get; set; }
 
 
 
